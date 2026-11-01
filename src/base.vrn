@@ -29,6 +29,29 @@
 (macro implementation (&rest arguments)
   (cons '%implementation arguments))
 
+;; Build the entire conditional in the definition's compile-time environment.
+;; No helper names escape into a client's runtime syntax, including aliased imports.
+(macro cond-expansion (input)
+  `(let ((clauses ,input))
+     (cond
+       ((empty? clauses) 'unit)
+       (true
+         (let ((clause (car clauses))
+               (test (car clause))
+               (body (cdr clause))
+               (result (cons 'do (cons (car body) (cdr body))))
+               (remaining (cdr clauses)))
+           (cond
+             ((and (empty? remaining) (equal? test 'true)) result)
+             (true
+               (list 'match test
+                 (list 'true result)
+                 (list 'false (cond-expansion remaining))))))))))
+
+;; Runtime library syntax over exhaustive boolean matches.
+(macro cond (&rest clauses)
+  (cond-expansion clauses))
+
 ;; Conversion dispatch is result-directed: the expected type surrounding a
 ;; call to CONVERT selects one implementation for the source value type.
 (generic convert (value))
@@ -303,7 +326,7 @@
 (implement-builtin-bounded order (less) (greater))
 
 (export
- macro type function external-function constant variable generic protocol implementation
+ macro type function external-function constant variable generic protocol implementation cond
  int rational order enum num eq ord real integral
  bounded minBound maxBound
  convert numeric equality ordering)
