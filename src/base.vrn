@@ -202,8 +202,7 @@
 ;; Keep implementations generated from one definition so each primitive type
 ;; has the same numeric, equality, and ordering surface.
 (macro implement-numeric (type)
-  (definitions
-    `(implementation (numeric ,type)
+  `((implementation (numeric ,type)
       (function + ((left ,type) (right ,type)) ,type
         (,(symbol-concat "%+-primitive-" type) left right))
       (function - ((left ,type) (right ,type)) ,type
@@ -212,10 +211,10 @@
         (,(symbol-concat "%*-primitive-" type) left right))
       (function / ((left ,type) (right ,type)) ,type
         (,(symbol-concat "%/-primitive-" type) left right)))
-    `(implementation (equality ,type)
+    (implementation (equality ,type)
       (function = ((left ,type) (right ,type)) bool
         (,(symbol-concat "%=-primitive-" type) left right)))
-    `(implementation (ordering ,type)
+    (implementation (ordering ,type)
       (function < ((left ,type) (right ,type)) bool
         (,(symbol-concat "%<-primitive-" type) left right))
       (function <= ((left ,type) (right ,type)) bool
