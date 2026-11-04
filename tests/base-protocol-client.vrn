@@ -43,11 +43,11 @@
   (>= left right))
 
 (base:function main () exit-code
-  (match (same (total 20 22) 42)
-    (true (match (less 42 43)
-            (true (match (less-or-equal 42 42)
-                    (true (match (greater 43 42)
-                            (true (match (greater-or-equal 43 43)
+  (match (same (total (cast i32 20) (cast i32 22)) (cast i32 42))
+    (true (match (less (cast i32 42) (cast i32 43))
+            (true (match (less-or-equal (cast i32 42) (cast i32 42))
+                    (true (match (greater (cast i32 43) (cast i32 42))
+                            (true (match (greater-or-equal (cast i32 43) (cast i32 43))
                                     (true 0)
                                     (false 1)))
                             (false 1)))
