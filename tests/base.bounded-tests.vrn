@@ -3,7 +3,6 @@
 
 (base:function lower (for (a) ((base:bounded a))) ((witness a)) a (minBound))
 (base:function upper (for (a) ((base:bounded a))) ((witness a)) a (maxBound))
-(base:function character-code ((value char)) u32 value)
 (base:function consume-unit ((value unit)) bool true)
 
 ; No equality or ordering instance is defined for these user types.
@@ -141,9 +140,6 @@
 (testing:test unit-minimum
   (let ((value unit (base:minBound))) (testing:check (consume-unit value))))
 
-(testing:test char-minimum
-  (let ((actual u32 (character-code (base:minBound))) (expected u32 0)) (testing:assert-equal actual expected)))
-
 (testing:test order-minimum
   (let ((value base:order (base:minBound))) (match value ((less) (testing:pass)) (_ (testing:fail)))))
 
@@ -170,9 +166,6 @@
 
 (testing:test unit-maximum
   (let ((value unit (base:maxBound))) (testing:check (consume-unit value))))
-
-(testing:test char-maximum
-  (let ((actual u32 (character-code (base:maxBound))) (expected u32 127)) (testing:assert-equal actual expected)))
 
 (testing:test order-maximum
   (let ((value base:order (base:maxBound))) (match value ((greater) (testing:pass)) (_ (testing:fail)))))
@@ -241,8 +234,8 @@
       (match hi ((blue) (testing:pass)) (_ (testing:fail))))))
 
 (testing:test constrained-character
-  (let ((witness char #\space) (lo u32 (character-code (lower witness)))
-       (hi u32 (character-code (upper witness))) (zero u32 0) (last u32 127))
+  (let ((witness u8 #\space) (lo u8 (lower witness))
+       (hi u8 (upper witness)) (zero u8 0) (last u8 255))
     (testing:checks (testing:assert-equal lo zero) (testing:assert-equal hi last))))
 
 (testing:runner main
@@ -272,7 +265,6 @@
   (usize-maximum)
   (bool-minimum)
   (unit-minimum)
-  (char-minimum)
   (order-minimum)
   (custom-enum-minimum)
   (singleton-minimum)
@@ -280,7 +272,6 @@
   (concrete-tuple-minimum)
   (bool-maximum)
   (unit-maximum)
-  (char-maximum)
   (order-maximum)
   (custom-enum-maximum)
   (singleton-maximum)

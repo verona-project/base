@@ -315,12 +315,6 @@
 (implement-builtin-bounded u64 0 18446744073709551615)
 ;; isize, usize, exit-code and int are aliases of these existing integer types.
 (implement-builtin-bounded bool false true)
-;; CHAR is an ASCII code unit with the same one-byte representation as U8.
-;; Read the constant byte as CHAR; no pointer escapes and no heap allocation occurs.
-(macro bounded-character (code)
-  `(let ((bounded-character-code u8 ,code))
-     (deref (cast (pointer char) (cast (pointer void) (& bounded-character-code))))))
-(implement-builtin-bounded char (bounded-character 0) (bounded-character 127))
 (implement-builtin-bounded unit unit unit)
 (implement-builtin-bounded order (less) (greater))
 
