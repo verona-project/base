@@ -52,6 +52,41 @@
 (macro cond (&rest clauses)
   (cond-expansion clauses))
 
+;; Expand the complete operand chain in Base's macro environment.
+(macro eager-boolean-expansion (operator neutral operands)
+  `(let ((values ,operands) (primitive ,operator) (identity ,neutral))
+     (cond
+       ((empty? values) identity)
+       (true (list primitive (car values)
+               (eager-boolean-expansion primitive identity (cdr values)))))))
+
+(macro short-boolean-expansion (stop operands)
+  `(let ((values ,operands) (decisive ,stop))
+     (cond
+       ((empty? values) (not decisive))
+       ((equal? decisive 'false)
+        (list 'match (car values)
+          (list 'true (short-boolean-expansion decisive (cdr values)))
+          (list 'false 'false)))
+       (true
+        (list 'match (car values)
+          (list 'true 'true)
+          (list 'false (short-boolean-expansion decisive (cdr values))))))))
+
+(macro and (first &rest rest)
+  (eager-boolean-expansion '%and-primitive-bool 'true (cons first rest)))
+
+(macro or (first &rest rest)
+  (eager-boolean-expansion '%or-primitive-bool 'false (cons first rest)))
+
+(function not ((value bool)) bool (%not-primitive-bool value))
+
+(macro and-then (first &rest rest)
+  (short-boolean-expansion 'false (cons first rest)))
+
+(macro or-else (first &rest rest)
+  (short-boolean-expansion 'true (cons first rest)))
+
 ;; Conversion dispatch is result-directed: the expected type surrounding a
 ;; call to CONVERT selects one implementation for the source value type.
 (generic convert (value))
@@ -319,7 +354,7 @@
 (implement-builtin-bounded order (less) (greater))
 
 (export
- macro type function external-function constant variable generic protocol implementation cond
+ macro type function external-function constant variable generic protocol implementation cond and or not and-then or-else
  int rational order enum num eq ord real integral
  bounded minBound maxBound
  convert numeric equality ordering)
