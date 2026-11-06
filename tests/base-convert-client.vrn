@@ -1,6 +1,4 @@
 (import base)
 
 (base:function main () exit-code
-  (let ((byte u8 (base:convert (cast i32 42)))
-        (number i32 (base:convert byte)))
-    number))
+  (let ((byte u8 (base:convert (cast i32 42))) (number i32 (base:convert byte))) number))

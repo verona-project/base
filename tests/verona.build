@@ -1,4 +1,5 @@
-(executable bounded-tests
+(executable
+  bounded-tests
   (root base.bounded-tests)
   (module-path ".")
   (module-path "../src")

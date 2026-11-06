@@ -1,23 +1,21 @@
 (import base :as b)
 
 (b:function tick ((state (pointer i32)) (digit i32) (result bool)) bool
-  (do
-    (store (deref state)
-      (%+-primitive-i32 (%*-primitive-i32 (deref state) 10) digit))
-    result))
+  (do (store (deref state) (%+-primitive-i32 (%*-primitive-i32 (deref state) 10) digit)) result))
 
 (b:function main () exit-code
-  (let ((state i32 0)
-        (chosen i32
-          (b:cond
-            ((tick (& state) 1 false) 99)
-            ((tick (& state) 2 true) (tick (& state) 3 true) 42)
-            ((tick (& state) 4 true) 99)
-            (true 99))))
+  (let
+    ((state i32 0)
+     (chosen
+       i32
+       (b:cond
+         ((tick (& state) 1 false) 99)
+         ((tick (& state) 2 true) (tick (& state) 3 true) 42)
+         ((tick (& state) 4 true) 99)
+         (true 99))))
     (do
       (b:cond)
       (b:cond ((tick (& state) 5 false) unit))
       (b:cond
-        ((%=-primitive-i32 state 1235)
-          (b:cond ((%=-primitive-i32 chosen 42) 42) (true 1)))
+        ((%=-primitive-i32 state 1235) (b:cond ((%=-primitive-i32 chosen 42) 42) (true 1)))
         (true 2)))))

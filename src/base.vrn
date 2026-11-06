@@ -1,7 +1,6 @@
 ; Explicitly imported standard declaration macros.  The first declaration uses
 ; the minimal compiler bootstrap; every following declaration is defined by
 ; this module's own MACRO macro and can therefore be replaced by an importer.
-
 (macro macro (&rest arguments)
   (cons '%macro arguments))
 
@@ -36,17 +35,15 @@
      (cond
        ((empty? clauses) 'unit)
        (true
-         (let ((clause (car clauses))
-               (test (car clause))
-               (body (cdr clause))
-               (result (cons 'do (cons (car body) (cdr body))))
-               (remaining (cdr clauses)))
+         (let
+           ((clause (car clauses))
+            (test (car clause))
+            (body (cdr clause))
+            (result (cons 'do (cons (car body) (cdr body))))
+            (remaining (cdr clauses)))
            (cond
              ((and (empty? remaining) (equal? test 'true)) result)
-             (true
-               (list 'match test
-                 (list 'true result)
-                 (list 'false (cond-expansion remaining))))))))))
+             (true (list 'match test (list 'true result) (list 'false (cond-expansion remaining))))))))))
 
 ;; Runtime library syntax over exhaustive boolean matches.
 (macro cond (&rest clauses)
@@ -57,21 +54,25 @@
   `(let ((values ,operands) (primitive ,operator) (identity ,neutral))
      (cond
        ((empty? values) identity)
-       (true (list primitive (car values)
-               (eager-boolean-expansion primitive identity (cdr values)))))))
+       (true
+         (list primitive (car values) (eager-boolean-expansion primitive identity (cdr values)))))))
 
 (macro short-boolean-expansion (stop operands)
   `(let ((values ,operands) (decisive ,stop))
      (cond
        ((empty? values) (not decisive))
        ((equal? decisive 'false)
-        (list 'match (car values)
+        (list
+          'match
+          (car values)
           (list 'true (short-boolean-expansion decisive (cdr values)))
           (list 'false 'false)))
        (true
-        (list 'match (car values)
-          (list 'true 'true)
-          (list 'false (short-boolean-expansion decisive (cdr values))))))))
+         (list
+           'match
+           (car values)
+           (list 'true 'true)
+           (list 'false (short-boolean-expansion decisive (cdr values))))))))
 
 (macro and (first &rest rest)
   (eager-boolean-expansion '%and-primitive-bool 'true (cons first rest)))
@@ -79,7 +80,8 @@
 (macro or (first &rest rest)
   (eager-boolean-expansion '%or-primitive-bool 'false (cons first rest)))
 
-(function not ((value bool)) bool (%not-primitive-bool value))
+(function not ((value bool)) bool
+  (%not-primitive-bool value))
 
 (macro and-then (first &rest rest)
   (short-boolean-expansion 'false (cons first rest)))
@@ -99,120 +101,210 @@
      (,primitive value)))
 
 (macro implement-identity-convert (type)
-  `(implementation convert ((value ,type)) ,type value))
+  `(implementation convert ((value ,type)) ,type
+     value))
 
 (implement-identity-convert i8)
+
 (implement-identity-convert i16)
+
 (implement-identity-convert i32)
+
 (implement-identity-convert i64)
+
 (implement-identity-convert u8)
+
 (implement-identity-convert u16)
+
 (implement-identity-convert u32)
+
 (implement-identity-convert u64)
+
 (implement-identity-convert f32)
+
 (implement-identity-convert f64)
 
 ;; Signed integers.
 (implement-convert i8 i16 %sext-primitive-i8-i16)
+
 (implement-convert i8 i32 %sext-primitive-i8-i32)
+
 (implement-convert i8 i64 %sext-primitive-i8-i64)
+
 (implement-convert i8 u8 %reinterpret-primitive-i8-u8)
+
 (implement-convert i8 u16 %sext-primitive-i8-u16)
+
 (implement-convert i8 u32 %sext-primitive-i8-u32)
+
 (implement-convert i8 u64 %sext-primitive-i8-u64)
+
 (implement-convert i8 f32 %sitofp-primitive-i8-f32)
+
 (implement-convert i8 f64 %sitofp-primitive-i8-f64)
 
 (implement-convert i16 i8 %trunc-primitive-i16-i8)
+
 (implement-convert i16 i32 %sext-primitive-i16-i32)
+
 (implement-convert i16 i64 %sext-primitive-i16-i64)
+
 (implement-convert i16 u8 %trunc-primitive-i16-u8)
+
 (implement-convert i16 u16 %reinterpret-primitive-i16-u16)
+
 (implement-convert i16 u32 %sext-primitive-i16-u32)
+
 (implement-convert i16 u64 %sext-primitive-i16-u64)
+
 (implement-convert i16 f32 %sitofp-primitive-i16-f32)
+
 (implement-convert i16 f64 %sitofp-primitive-i16-f64)
 
 (implement-convert i32 i8 %trunc-primitive-i32-i8)
+
 (implement-convert i32 i16 %trunc-primitive-i32-i16)
+
 (implement-convert i32 i64 %sext-primitive-i32-i64)
+
 (implement-convert i32 u8 %trunc-primitive-i32-u8)
+
 (implement-convert i32 u16 %trunc-primitive-i32-u16)
+
 (implement-convert i32 u32 %reinterpret-primitive-i32-u32)
+
 (implement-convert i32 u64 %sext-primitive-i32-u64)
+
 (implement-convert i32 f32 %sitofp-primitive-i32-f32)
+
 (implement-convert i32 f64 %sitofp-primitive-i32-f64)
 
 (implement-convert i64 i8 %trunc-primitive-i64-i8)
+
 (implement-convert i64 i16 %trunc-primitive-i64-i16)
+
 (implement-convert i64 i32 %trunc-primitive-i64-i32)
+
 (implement-convert i64 u8 %trunc-primitive-i64-u8)
+
 (implement-convert i64 u16 %trunc-primitive-i64-u16)
+
 (implement-convert i64 u32 %trunc-primitive-i64-u32)
+
 (implement-convert i64 u64 %reinterpret-primitive-i64-u64)
+
 (implement-convert i64 f32 %sitofp-primitive-i64-f32)
+
 (implement-convert i64 f64 %sitofp-primitive-i64-f64)
 
 ;; Unsigned integers.
 (implement-convert u8 i8 %reinterpret-primitive-u8-i8)
+
 (implement-convert u8 i16 %zext-primitive-u8-i16)
+
 (implement-convert u8 i32 %zext-primitive-u8-i32)
+
 (implement-convert u8 i64 %zext-primitive-u8-i64)
+
 (implement-convert u8 u16 %zext-primitive-u8-u16)
+
 (implement-convert u8 u32 %zext-primitive-u8-u32)
+
 (implement-convert u8 u64 %zext-primitive-u8-u64)
+
 (implement-convert u8 f32 %uitofp-primitive-u8-f32)
+
 (implement-convert u8 f64 %uitofp-primitive-u8-f64)
 
 (implement-convert u16 i8 %trunc-primitive-u16-i8)
+
 (implement-convert u16 i16 %reinterpret-primitive-u16-i16)
+
 (implement-convert u16 i32 %zext-primitive-u16-i32)
+
 (implement-convert u16 i64 %zext-primitive-u16-i64)
+
 (implement-convert u16 u8 %trunc-primitive-u16-u8)
+
 (implement-convert u16 u32 %zext-primitive-u16-u32)
+
 (implement-convert u16 u64 %zext-primitive-u16-u64)
+
 (implement-convert u16 f32 %uitofp-primitive-u16-f32)
+
 (implement-convert u16 f64 %uitofp-primitive-u16-f64)
 
 (implement-convert u32 i8 %trunc-primitive-u32-i8)
+
 (implement-convert u32 i16 %trunc-primitive-u32-i16)
+
 (implement-convert u32 i32 %reinterpret-primitive-u32-i32)
+
 (implement-convert u32 i64 %zext-primitive-u32-i64)
+
 (implement-convert u32 u8 %trunc-primitive-u32-u8)
+
 (implement-convert u32 u16 %trunc-primitive-u32-u16)
+
 (implement-convert u32 u64 %zext-primitive-u32-u64)
+
 (implement-convert u32 f32 %uitofp-primitive-u32-f32)
+
 (implement-convert u32 f64 %uitofp-primitive-u32-f64)
 
 (implement-convert u64 i8 %trunc-primitive-u64-i8)
+
 (implement-convert u64 i16 %trunc-primitive-u64-i16)
+
 (implement-convert u64 i32 %trunc-primitive-u64-i32)
+
 (implement-convert u64 i64 %reinterpret-primitive-u64-i64)
+
 (implement-convert u64 u8 %trunc-primitive-u64-u8)
+
 (implement-convert u64 u16 %trunc-primitive-u64-u16)
+
 (implement-convert u64 u32 %trunc-primitive-u64-u32)
+
 (implement-convert u64 f32 %uitofp-primitive-u64-f32)
+
 (implement-convert u64 f64 %uitofp-primitive-u64-f64)
 
 ;; Floating-point conversions.
 (implement-convert f32 i8 %fptosi-primitive-f32-i8)
+
 (implement-convert f32 i16 %fptosi-primitive-f32-i16)
+
 (implement-convert f32 i32 %fptosi-primitive-f32-i32)
+
 (implement-convert f32 i64 %fptosi-primitive-f32-i64)
+
 (implement-convert f32 u8 %fptoui-primitive-f32-u8)
+
 (implement-convert f32 u16 %fptoui-primitive-f32-u16)
+
 (implement-convert f32 u32 %fptoui-primitive-f32-u32)
+
 (implement-convert f32 u64 %fptoui-primitive-f32-u64)
+
 (implement-convert f32 f64 %fext-primitive-f32-f64)
 
 (implement-convert f64 i8 %fptosi-primitive-f64-i8)
+
 (implement-convert f64 i16 %fptosi-primitive-f64-i16)
+
 (implement-convert f64 i32 %fptosi-primitive-f64-i32)
+
 (implement-convert f64 i64 %fptosi-primitive-f64-i64)
+
 (implement-convert f64 u8 %fptoui-primitive-f64-u8)
+
 (implement-convert f64 u16 %fptoui-primitive-f64-u16)
+
 (implement-convert f64 u32 %fptoui-primitive-f64-u32)
+
 (implement-convert f64 u64 %fptoui-primitive-f64-u64)
+
 (implement-convert f64 f32 %ftrunc-primitive-f64-f32)
 
 ;; Core numeric, equality, and ordering protocols. Client code can constrain a
@@ -260,14 +352,23 @@
         (,(symbol-concat "%>=-primitive-" type) left right)))))
 
 (implement-numeric i8)
+
 (implement-numeric i16)
+
 (implement-numeric i32)
+
 (implement-numeric i64)
+
 (implement-numeric u8)
+
 (implement-numeric u16)
+
 (implement-numeric u32)
+
 (implement-numeric u64)
+
 (implement-numeric f32)
+
 (implement-numeric f64)
 
 (implementation (equality bool)
@@ -280,12 +381,10 @@
 ;; values.  These aliases make that representation explicit.  `order` is a
 ;; closed comparison result, not an integer alias.
 (type int i64)
+
 (type rational f64)
-(type order
-  (sum
-    (less)
-    (equal)
-    (greater)))
+
+(type order (sum (less) (equal) (greater)))
 
 (protocol enum (a)
   (succ ((value a)) a)
@@ -333,28 +432,68 @@
   (maxBound () a))
 
 (generic minBound ())
+
 (generic maxBound ())
 
 (macro implement-builtin-bounded (type lower upper)
   `(implementation (bounded ,type)
-     (function minBound () ,type ,lower)
-     (function maxBound () ,type ,upper)))
+     (function minBound () ,type
+       ,lower)
+     (function maxBound () ,type
+       ,upper)))
 
 (implement-builtin-bounded i8 -128 127)
+
 (implement-builtin-bounded i16 -32768 32767)
+
 (implement-builtin-bounded i32 -2147483648 2147483647)
+
 (implement-builtin-bounded i64 -9223372036854775808 9223372036854775807)
+
 (implement-builtin-bounded u8 0 255)
+
 (implement-builtin-bounded u16 0 65535)
+
 (implement-builtin-bounded u32 0 4294967295)
+
 (implement-builtin-bounded u64 0 18446744073709551615)
+
 ;; isize, usize, exit-code and int are aliases of these existing integer types.
 (implement-builtin-bounded bool false true)
+
 (implement-builtin-bounded unit unit unit)
+
 (implement-builtin-bounded order (less) (greater))
 
 (export
- macro type function external-function constant variable generic protocol implementation cond and or not and-then or-else
- int rational order enum num eq ord real integral
- bounded minBound maxBound
- convert numeric equality ordering)
+  macro
+  type
+  function
+  external-function
+  constant
+  variable
+  generic
+  protocol
+  implementation
+  cond
+  and
+  or
+  not
+  and-then
+  or-else
+  int
+  rational
+  order
+  enum
+  num
+  eq
+  ord
+  real
+  integral
+  bounded
+  minBound
+  maxBound
+  convert
+  numeric
+  equality
+  ordering)
