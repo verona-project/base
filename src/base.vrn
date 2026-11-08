@@ -83,6 +83,10 @@
 (function not ((value bool)) bool
   (%not-primitive-bool value))
 
+;; Pointer nullability is compiler-provided; expose it as ordinary Base syntax.
+(macro is-null (value)
+  (list '%is-null-primitive-pointer value))
+
 (macro and-then (first &rest rest)
   (short-boolean-expansion 'false (cons first rest)))
 
@@ -318,7 +322,7 @@
   (/ ((left a) (right a)) a))
 
 (protocol equality (a)
-  (= ((left a) (right a)) bool))
+  (== ((left a) (right a)) bool))
 
 (protocol ordering (a)
   (< ((left a) (right a)) bool)
@@ -339,7 +343,7 @@
       (function / ((left ,type) (right ,type)) ,type
         (,(symbol-concat "%/-primitive-" type) left right)))
     (implementation (equality ,type)
-      (function = ((left ,type) (right ,type)) bool
+      (function == ((left ,type) (right ,type)) bool
         (,(symbol-concat "%=-primitive-" type) left right)))
     (implementation (ordering ,type)
       (function < ((left ,type) (right ,type)) bool
@@ -372,7 +376,7 @@
 (implement-numeric f64)
 
 (implementation (equality bool)
-  (function = ((left bool) (right bool)) bool
+  (function == ((left bool) (right bool)) bool
     (%=-primitive-bool left right)))
 
 ;; Core numeric protocols -------------------------------------------------------
@@ -403,7 +407,7 @@
 ;; Protocol superclasses are not yet modeled by the compiler, so callers state
 ;; each required constraint explicitly.
 (protocol eq (a)
-  (= ((left a) (right a)) bool))
+  (== ((left a) (right a)) bool))
 
 (protocol ord (a)
   (compare ((left a) (right a)) order)
@@ -479,6 +483,7 @@
   and
   or
   not
+  is-null
   and-then
   or-else
   int
