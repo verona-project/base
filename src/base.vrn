@@ -10,6 +10,13 @@
 (macro function (&rest arguments)
   (cons '%function arguments))
 
+; Emit independent core declarations, retaining normal body/generic resolution.
+(macro inline-function (&rest arguments)
+  (list (cons '%function arguments) (list '%inline (car arguments))))
+
+(macro noinline-function (&rest arguments)
+  (list (cons '%function arguments) (list '%noinline (car arguments))))
+
 (macro external-function (&rest arguments)
   (cons '%external-function arguments))
 
@@ -473,6 +480,8 @@
   macro
   type
   function
+  inline-function
+  noinline-function
   external-function
   constant
   variable

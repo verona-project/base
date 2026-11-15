@@ -15,6 +15,34 @@ verona build base ./build
 Add this repository's `src` directory to a consuming project's module paths and
 import `base`. Base has no Verona library dependencies.
 
+## Function inlining declarations
+
+`base:function` uses the compiler's automatic inlining policy unless a directive
+is supplied. `base:inline-function` emits a function and a separate forced-inline
+directive:
+
+```lisp
+(base:inline-function helper ((value i64)) i64
+  (+ value 1))
+```
+
+Its top-level expansion is:
+
+```lisp
+(%function helper ((value i64)) i64
+  (+ value 1))
+(%inline helper)
+```
+
+`base:noinline-function` similarly emits `%function` followed by `%noinline`.
+Both accept the same declaration arguments as `base:function`, including `for`
+parameters. Body expressions retain normal expansion and generic resolution.
+
+These macros require a compiler supporting the directives. At optimized native
+levels, forced inlining bypasses profitability thresholds, subject to LLVM
+legality and recursion constraints. `-O0` keeps calls and reports forced requests
+as inactive. Contradictory directives for one local function are errors.
+
 ## Conditional expressions
 
 `base:cond` selects the first true clause, evaluating tests once in source order
